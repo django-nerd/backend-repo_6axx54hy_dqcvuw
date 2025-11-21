@@ -1,48 +1,43 @@
 """
-Database Schemas
+Database Schemas for Follow-up App
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
-
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+Each Pydantic model corresponds to a MongoDB collection.
+Collection name is the lowercase of the class name.
 """
-
+from __future__ import annotations
 from pydantic import BaseModel, Field
-from typing import Optional
-
-# Example schemas (replace with your own):
+from typing import Optional, Literal
 
 class User(BaseModel):
     """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
+    Users of the system
+    Collection: "user"
     """
     name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    email: str = Field(..., description="Unique email")
+    role: Literal["employee", "core"] = Field("employee", description="User role")
+    department: Optional[str] = Field(None, description="Department or team")
+    is_active: bool = Field(True, description="Active user")
 
-class Product(BaseModel):
+class Dailyupdate(BaseModel):
     """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
+    Daily updates submitted by employees
+    Collection: "dailyupdate"
     """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+    user_id: str = Field(..., description="ID of the user submitting")
+    work_summary: str = Field(..., description="What was done today")
+    blockers: Optional[str] = Field(None, description="Any blockers or risks")
+    plan_next: Optional[str] = Field(None, description="Plan for next day")
+    status: Literal["on-track", "at-risk", "blocked"] = Field("on-track")
 
-# Add your own schemas here:
-# --------------------------------------------------
-
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Followup(BaseModel):
+    """
+    Follow-up items created by core team
+    Collection: "followup"
+    """
+    title: str = Field(..., description="Short title")
+    details: Optional[str] = Field(None, description="Details / context")
+    assigned_to: str = Field(..., description="Employee user id")
+    assigned_by: Optional[str] = Field(None, description="Core team user id")
+    due_date: Optional[str] = Field(None, description="ISO date string")
+    status: Literal["open", "in-progress", "done"] = Field("open")
